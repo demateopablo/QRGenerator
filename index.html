@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar QR</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-width: 550px;
+	    
+        }
+
+        #urlInput, #sizeInput {
+            width: 100% !important;
+            max-width: 500px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #qrCanvas {
+	    margin: 10px;
+            width: 400px;
+            height: 400px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        .input-group {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group label {
+            margin-right: 5px;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .input-group input[type="color"] {
+            width: 50px;
+            height: 30px;
+        }
+
+        .hint {
+            font-size: 14px;
+            color: #007bff;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .hint:hover {
+            text-decoration: underline;
+        }
+
+        /* Estilo para el diálogo */
+        dialog {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 500px;
+            width: 80%;
+            background: #fff;
+            text-align: center;
+            margin: auto;
+            padding: 20px;
+            transition: scale .3s ease, display .3s ease allow-discrete;
+            scale: 0;
+        
+        &[open]{
+            scale: 1;
+            transition: scale .3s ease-in-out, opacity .3s east, translate 1s ease;
+            translate: 0px 0px;
+        
+        @starting-style {
+            scale: 0;
+            translate: 0px 100px;
+        }
+        }
+        }
+
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .color-group {
+            justify-content: center;
+        }
+
+        /* Estilos para el footer */
+footer {
+            background-color: #777; /* Fondo oscuro para el footer */
+            color: #fff; /* Color del texto blanco */
+            text-align: center; /* Alineación centrada del texto */
+            padding: 10px 0; /* Espaciado interno (padding) en la parte superior e inferior */
+            position: relative; /* Posicionamiento relativo para asegurar el margen */
+            bottom: 0; /* Alineación al fondo de la página */
+            width: 100%; /* Asegura que el footer ocupe todo el ancho del viewport */
+            margin-top: 20px; /* Margen superior para separarlo del contenido del body */
+            box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1); /* Sombra sutil para dar profundidad */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generar Código QR</h1>
+
+        <div class="input-group">
+            <label for="urlInput">Ingresá la URL:</label>
+            <input type="text" id="urlInput" placeholder="https://www.google.com.ar">
+        </div>
+
+        <div class="input-group">
+            <label for="sizeInput">Tamaño del QR:</label>
+            <input type="range" id="sizeInput" min="200" max="1000" value="600">
+            <span id="sizeLabel">Tamaño: 600px</span>
+        </div>
+
+        <div class="input-group">
+            <label for="levelSelect">Nivel de Corrección de Errores:</label>
+            <select id="levelSelect">
+                <option value="L">Bajo (7%)</option>
+                <option value="M" selected>Medio (15%)</option>
+                <option value="Q">Cuartil (25%)</option>
+                <option value="H">Alto (30%)</option>
+            </select>
+            <span class="hint" id="hintIcon">💡</span>
+        </div>
+
+        <div class="input-group color-group">
+            <div>
+                <label for="colorInput">Color del QR:</label>
+                <input type="color" id="colorInput" value="#000000">
+            </div>
+            <div>
+                <label for="bgColorInput">Color de Fondo:</label>
+                <input type="color" id="bgColorInput" value="#ffffff">
+            </div>
+        </div>
+
+        <button onclick="generateQR()">Generar QR</button>
+
+        <div>
+            <!-- Canvas donde se mostrará el código QR -->
+            <canvas id="qrCanvas"></canvas>
+        </div>
+
+        <!-- Opciones del QR -->
+        <dialog id="qrOptionsDialog">
+            <h2>Opciones del Código QR</h2>
+            <button id="downloadQRButton">Descargar</button>
+            <button id="closeQRDialog">Cerrar</button>
+        </dialog>
+    </div>
+
+    <!-- Diálogo para niveles de corrección de errores -->
+    <dialog id="myDialog">
+        <h2>Niveles de Corrección de Errores</h2>
+        <p><strong>Bajo:</strong> Permite hasta el 7% de daño en el código QR. Adecuado para entornos controlados.</p>
+        <p><strong>Medio:</strong> Permite hasta el 15% de daño. Un buen compromiso para aplicaciones generales.</p>
+        <p><strong>Cuartil:</strong> Permite hasta el 25% de daño. Ideal para entornos donde el código puede estar más expuesto a daños.</p>
+        <p><strong>Alto:</strong> Permite hasta el 30% de daño. Ofrece la mayor capacidad de corrección, ideal para condiciones adversas.</p>
+        <button id="closeDialog">Cerrar</button>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+    <script>
+        // Actualizar el tamaño del QR en el DOM
+        document.getElementById('sizeInput').addEventListener('input', function() {
+            document.getElementById('sizeLabel').textContent = `Tamaño: ${this.value}px`;
+        });
+
+        // Obtener el diálogo y los botones de opciones
+        var qrOptionsDialog = document.getElementById("qrOptionsDialog");
+        var hintIcon = document.getElementById("hintIcon");
+        var closeQRDialog = document.getElementById("closeQRDialog");
+        var downloadQRButton = document.getElementById("downloadQRButton");
+        var closeDialog = document.getElementById("closeDialog");
+
+        // Obtener el diálogo para niveles de corrección de errores
+        var dialog = document.getElementById("myDialog");
+
+        // Mostrar el diálogo de opciones cuando se haga clic en el canvas
+        document.getElementById('qrCanvas').onclick = function() {
+            qrOptionsDialog.showModal();
+        }
+
+        // Descargar el QR como imagen PNG
+        downloadQRButton.onclick = function() {
+            var canvas = document.getElementById('qrCanvas');
+            var dataURL = canvas.toDataURL('image/png');
+            var link = document.createElement('a');
+            link.href = dataURL;
+            link.download = 'qr-code.png';
+            link.click();
+        }
+
+        // Cerrar el diálogo de opciones
+        closeQRDialog.onclick = function() {
+            qrOptionsDialog.close();
+        }
+
+        // Mostrar el diálogo de niveles de corrección de errores cuando se haga clic en el icono de ayuda
+        hintIcon.onclick = function() {
+            dialog.showModal();
+        }
+
+        // Cerrar el diálogo de niveles de corrección de errores
+        closeDialog.onclick = function() {
+            dialog.close();
+        }
+
+        // Función para generar el código QR
+        function generateQR() {
+            var url = document.getElementById('urlInput').value;
+            var size = parseInt(document.getElementById('sizeInput').value);
+            var level = document.getElementById('levelSelect').value;
+            var color = document.getElementById('colorInput').value;
+            var bgColor = document.getElementById('bgColorInput').value;
+
+            var qr = new QRious({
+                element: document.getElementById('qrCanvas'),
+                value: url,
+                size: size,
+                level: level,
+                foreground: color,
+                background: bgColor
+            });
+        }
+    </script>
+</body>
+<footer>Pablo Demateo © 2024</footer>
+</html>
