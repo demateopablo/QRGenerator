@@ -145,7 +145,7 @@ footer {
 
         <div class="input-group">
             <label for="urlInput">Ingresá la URL:</label>
-            <input type="text" id="urlInput" placeholder="https://www.google.com.ar">
+            <input type="text" id="urlInput" placeholder="https://www.google.com.ar" required>
         </div>
 
         <div class="input-group">
@@ -203,6 +203,9 @@ footer {
 
     <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
     <script>
+        // Variable para verificar si se generó un QR
+        let qrGenerated = false;
+
         // Actualizar el tamaño del QR en el DOM
         document.getElementById('sizeInput').addEventListener('input', function() {
             document.getElementById('sizeLabel').textContent = `Tamaño: ${this.value}px`;
@@ -220,7 +223,11 @@ footer {
 
         // Mostrar el diálogo de opciones cuando se haga clic en el canvas
         document.getElementById('qrCanvas').onclick = function() {
-            qrOptionsDialog.showModal();
+            if (qrGenerated) {
+                qrOptionsDialog.showModal();
+            } else {
+                alert("Por favor, generá un QR para continuar.")
+            }
         }
 
         // Descargar el QR como imagen PNG
@@ -251,6 +258,11 @@ footer {
         // Función para generar el código QR
         function generateQR() {
             var url = document.getElementById('urlInput').value;
+            if (!url.trim()) { // Verificar si la URL está vacía
+                alert("Por favor, ingresá una URL válida.");
+                return;
+            }
+
             var size = parseInt(document.getElementById('sizeInput').value);
             var level = document.getElementById('levelSelect').value;
             var color = document.getElementById('colorInput').value;
@@ -264,6 +276,8 @@ footer {
                 foreground: color,
                 background: bgColor
             });
+
+            qrGenerated = true; // Marcar que se ha generado un QR
         }
     </script>
 </body>
