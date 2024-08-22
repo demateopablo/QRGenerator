@@ -14,7 +14,7 @@
         var closeDialog = document.getElementById("closeDialog");
 
         // Obtener el diálogo para niveles de corrección de errores
-        var dialog = document.getElementById("myDialog");
+        var dialog = document.getElementById("hintDialog");
 
         // Mostrar el diálogo de opciones cuando se haga clic en el canvas
         document.getElementById('qrCanvas').onclick = function() {
