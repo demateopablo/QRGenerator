@@ -1,0 +1,132 @@
+body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-width: 550px;
+	    
+        }
+
+        #urlInput, #sizeInput {
+            width: 100% !important;
+            max-width: 500px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #qrCanvas {
+	    margin: 10px;
+            width: 400px;
+            height: 400px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        .input-group {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-group label {
+            margin-right: 5px;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .input-group input[type="color"] {
+            width: 50px;
+            height: 30px;
+        }
+
+        .hint {
+            font-size: 18px;
+            color: #007bff;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .hint:hover {
+            text-decoration: underline;
+        }
+
+        /* Estilo para el diálogo */
+        dialog {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 500px;
+            width: 80%;
+            background: #fff;
+            text-align: center;
+            margin: auto;
+            padding: 20px;
+            transition: scale .3s ease, display .3s ease allow-discrete;
+            scale: 0;
+        
+        &[open]{
+            scale: 1;
+            transition: scale .3s ease-in-out, opacity .3s east, translate 1s ease;
+            translate: 0px 0px;
+        
+        @starting-style {
+            scale: 0;
+            translate: 0px 100px;
+        }
+        }
+        }
+
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .color-group {
+            justify-content: center;
+        }
+
+        /* Estilos para el footer */
+footer {
+            background-color: #777; /* Fondo oscuro para el footer */
+            color: #fff; /* Color del texto blanco */
+            text-align: center; /* Alineación centrada del texto */
+            padding: 10px 0; /* Espaciado interno (padding) en la parte superior e inferior */
+            position: relative; /* Posicionamiento relativo para asegurar el margen */
+            bottom: 0; /* Alineación al fondo de la página */
+            width: 100%; /* Asegura que el footer ocupe todo el ancho del viewport */
+            margin-top: 20px; /* Margen superior para separarlo del contenido del body */
+            box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1); /* Sombra sutil para dar profundidad */
+        }
