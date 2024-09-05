@@ -1,1 +1,1 @@
-[Acceder al site](https://demateopablo.github.io/QRGenerator/)
+# [Acceder al Generador de QR](https://demateopablo.github.io/QRGenerator/)
