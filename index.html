@@ -38,7 +38,7 @@
         <p><strong>Medio:</strong> Permite hasta el 15% de daño. Un buen compromiso para aplicaciones generales.</p>
         <p><strong>Cuartil:</strong> Permite hasta el 25% de daño. Ideal para entornos donde el código puede estar más expuesto a daños.</p>
         <p><strong>Alto:</strong> Permite hasta el 30% de daño. Ofrece la mayor capacidad de corrección, ideal para condiciones adversas.</p>
-        <button id="closeDialog">Cerrar</button>
+        <button type="button" id="closeDialog">Cerrar</button>
     </dialog>
         <div class="input-group color-group">
             <div>
@@ -56,7 +56,7 @@
             <input type="file" id="logoInput" disabled accept="image/png">
         </div>
 
-        <button onclick="generateQR()">Generar QR</button>
+        <button type="button" onclick="generateQR()">Generar QR</button>
 
         <div>
             <!-- Canvas donde se mostrará el código QR -->
@@ -66,8 +66,8 @@
         <!-- Opciones del QR -->
         <dialog id="qrOptionsDialog">
             <h2>Opciones del Código QR</h2>
-            <button id="downloadQRButton">Descargar</button>
-            <button id="closeQRDialog">Cerrar</button>
+            <button type="button" id="downloadQRButton">Descargar</button>
+            <button type="button" id="closeQRDialog">Cerrar</button>
         </dialog>
     </div>
     <footer>Pablo Demateo © 2024</footer>
