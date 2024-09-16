@@ -77,10 +77,30 @@ body {
             color: #007bff;
             cursor: pointer;
             margin-left: 10px;
+            animation: scaleHint 2s infinite;
+            border-radius: 50%;
         }
-
+        
+        @keyframes scaleHint {
+            0% {
+                transform: scale(1.1);
+                background-color: #ffff0075;
+            }
+            50% {
+                transform: scale(0.8);
+                background-color: #ffff0000;
+            }
+            100% {
+                transform: scale(1.1);
+                background-color: #ffff0075;
+            }
+        }
+        
         .hint:hover {
+            animation: none;
             text-decoration: underline;
+            transform: scale(1.2);
+            background-color: #ffff00;
         }
 
         /* Estilo para el diálogo */
