@@ -101,6 +101,7 @@ body {
             text-decoration: underline;
             transform: scale(1.2);
             background-color: #ffff00;
+            text-decoration: none;
         }
 
         /* Estilo para el diálogo */
