@@ -1,116 +1,173 @@
-// Variable para verificar si se generó un QR
+// ── Estado ──────────────────────────────────────────────
 let qrGenerated = false;
 
-// Actualizar el tamaño del QR en el DOM
-document.getElementById('sizeInput').addEventListener('input', function () {
-    document.getElementById('sizeLabel').textContent = `Tamaño: ${this.value}px`;
-});
+// ── Helpers ─────────────────────────────────────────────
+const $ = id => document.getElementById(id);
 
-// Obtener el diálogo y los botones de opciones
-var qrOptionsDialog = document.getElementById("qrOptionsDialog");
-var hintIcon = document.getElementById("hintIcon");
-var closeQRDialog = document.getElementById("closeQRDialog");
-var downloadQRButton = document.getElementById("downloadQRButton");
-var closeDialog = document.getElementById("closeDialog");
-
-// Obtener el diálogo para niveles de corrección de errores
-var dialog = document.getElementById("hintDialog");
-
-// Mostrar el diálogo de opciones cuando se haga clic en el canvas
-document.getElementById('qrCanvas').onclick = function () {
-    if (qrGenerated) {
-        qrOptionsDialog.showModal();
-    } else {
-        alert("Por favor, generá un QR para continuar.")
-    }
+function triggerRevealAnimation() {
+  const canvas = $('qrCanvas');
+  canvas.classList.remove('qr-reveal');
+  void canvas.offsetWidth;
+  canvas.classList.add('qr-reveal');
 }
 
-// Descargar el QR como imagen PNG
-downloadQRButton.onclick = function () {
-    var canvas = document.getElementById('qrCanvas');
-    var dataURL = canvas.toDataURL('image/png');
-    var link = document.createElement('a');
-    link.href = dataURL;
-    link.download = 'qr-code.png';
-    link.click();
+function buildQR(value) {
+  if (!value?.trim()) return null;
+  return new QRious({
+    element:    $('qrCanvas'),
+    value,
+    size:       parseInt($('sizeInput').value),
+    level:      $('levelSelect').value,
+    foreground: $('colorInput').value,
+    background: $('bgColorInput').value,
+  });
 }
 
-// Cerrar el diálogo de opciones
-closeQRDialog.onclick = function () {
-    qrOptionsDialog.close();
+function overlayLogo(qr, logoFile) {
+  if (!logoFile) return;
+  const level   = $('levelSelect').value;
+  const size    = parseInt($('sizeInput').value);
+  const context = $('qrCanvas').getContext('2d');
+  const reader  = new FileReader();
+  reader.onload = ({ target }) => {
+    const logo = new Image();
+    logo.src   = target.result;
+    logo.onload = () => {
+      qr.update();
+      const logoSize = size * (level === 'H' ? 0.35 : 0.30);
+      const offset   = (size - logoSize) / 2;
+      context.drawImage(logo, offset, offset, logoSize, logoSize);
+    };
+  };
+  reader.readAsDataURL(logoFile);
 }
 
-// Mostrar el diálogo de niveles de corrección de errores cuando se haga clic en el icono de ayuda
-hintIcon.onclick = function () {
-    dialog.showModal();
+// ── Slider fill ──────────────────────────────────────────
+// Actualiza la custom property --val que el CSS usa para el gradiente
+function updateSliderFill(input) {
+  const min = parseFloat(input.min) || 0;
+  const max = parseFloat(input.max) || 100;
+  const pct = ((parseFloat(input.value) - min) / (max - min)) * 100;
+  input.style.setProperty('--val', `${pct}%`);
 }
 
-// Cerrar el diálogo de niveles de corrección de errores
-closeDialog.onclick = function () {
-    dialog.close();
+// ── Modo activo ──────────────────────────────────────────
+let activeMode = 'url';
+
+function setMode(mode) {
+  activeMode = mode;
+  $('panel-url').hidden  = mode !== 'url';
+  $('panel-wifi').hidden = mode !== 'wifi';
+  $('panel-mp').hidden   = mode !== 'mp';
+  document.querySelectorAll('.tab-btn').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.mode === mode)
+  );
 }
 
-// Habilitar o deshabilitar el input de logo según el nivel de corrección
-document.getElementById('levelSelect').addEventListener('change', function () {
-    var logoInput = document.getElementById('logoInput');
-    if (this.value === 'H' || this.value === 'Q') {
-        logoInput.disabled = false;
-    } else {
-        logoInput.disabled = true;
-        logoInput.value = ''; // Limpiar la selección del logo si se cambia el nivel de corrección
-    }
-});
+// ── Construir valor del QR según modo ───────────────────
+function buildQRValue() {
+  if (activeMode === 'url') {
+    const url = $('urlInput').value.trim();
+    if (!url) { alert('Por favor, ingresá una URL válida.'); return null; }
+    return url;
+  }
 
-// Función para generar el código QR
+  if (activeMode === 'wifi') {
+    const ssid     = $('wifiSSID').value.trim();
+    const password = $('wifiPassword').value; // no trim: espacios son válidos en contraseñas
+    const security = $('wifiSecurity').value;
+    if (!ssid) { alert('Por favor, ingresá el nombre de la red (SSID).'); return null; }
+    if (security === 'nopass') return `WIFI:T:nopass;S:${ssid};;`;
+    return `WIFI:T:${security};S:${ssid};P:${password};;`;
+  }
+
+  if (activeMode === 'mp') {
+    const alias = $('mpAlias').value.trim();
+    if (!alias) { alert('Por favor, ingresá tu alias o CBU/CVU.'); return null; }
+    /*
+      Mercado Pago no tiene un deep link público para transferencias desde QR externo.
+      Los QR que genera la propia app usan un formato privado firmado, no replicable.
+      La solución honesta: encodear el alias como texto plano con un prefijo claro.
+      Quien escanee verá el alias y lo copia en la app de MP para transferir.
+    */
+    return `Alias: ${alias}`;
+  }
+
+  return null;
+}
+
+// ── Generar QR ───────────────────────────────────────────
 function generateQR() {
-    var url = document.getElementById('urlInput').value;
-    if (!url.trim()) { // Verificar si la URL está vacía
-        alert("Por favor, ingresá una URL válida.");
-        return;
-    }
+  const value = buildQRValue();
+  if (!value) return;
 
-    var size = parseInt(document.getElementById('sizeInput').value);
-    var level = document.getElementById('levelSelect').value;
-    var color = document.getElementById('colorInput').value;
-    var bgColor = document.getElementById('bgColorInput').value;
-    var logoInput = document.getElementById('logoInput').files[0]; // Obtener el archivo de logo subido
+  const logoFile = $('logoInput').files[0];
+  const qr       = buildQR(value);
 
-    var qr = new QRious({
-        element: document.getElementById('qrCanvas'),
-        value: url,
-        size: size,
-        level: level,
-        foreground: color,
-        background: bgColor
-    });
+  if (logoFile && ['H', 'Q'].includes($('levelSelect').value)) {
+    overlayLogo(qr, logoFile);
+  }
 
-    qrGenerated = true; // Marcar que se ha generado un QR
-
-    // Si se ha subido un logo y el nivel de corrección es 'ALTO'
-    if (logoInput && level === 'H' || level === 'Q') {
-        var context = document.getElementById('qrCanvas').getContext('2d');
-        var logo = new Image();
-        var reader = new FileReader();
-
-        reader.onload = function (event) {
-            logo.src = event.target.result;
-            logo.onload = function () {
-                // Redibujar el QR para asegurar que se muestre
-                qr.update();
-
-                // Ajustar el tamaño del logo
-                if (level === 'H') {
-                    var logoSize = Math.min(size * 0.45, size * 0.35); // El logo no puede ser mayor al 40% del tamaño del QR
-                } else {
-                    var logoSize = Math.min(size * 0.4, size * 0.3); // El logo no puede ser mayor al 40% del tamaño del QR
-                }
-                var x = (size - logoSize) / 2;
-                var y = (size - logoSize) / 2;
-
-                context.drawImage(logo, x, y, logoSize, logoSize);
-            };
-        };
-
-        reader.readAsDataURL(logoInput);
-    }
+  triggerRevealAnimation();
+  qrGenerated = true;
 }
+
+// ── Listeners ────────────────────────────────────────────
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn =>
+  btn.addEventListener('click', () => setMode(btn.dataset.mode))
+);
+
+// Slider — label + fill
+const sizeInput = $('sizeInput');
+sizeInput.addEventListener('input', function () {
+  $('sizeLabel').textContent = `Tamaño: ${this.value}px`;
+  updateSliderFill(this);
+});
+updateSliderFill(sizeInput); // inicializar fill al cargar la página
+
+// Nivel de corrección → habilitar logo
+$('levelSelect').addEventListener('change', function () {
+  const logoInput  = $('logoInput');
+  const canUseLogo = this.value === 'H' || this.value === 'Q';
+  logoInput.disabled = !canUseLogo;
+  if (!canUseLogo) logoInput.value = '';
+});
+
+// Canvas → abrir opciones
+$('qrCanvas').addEventListener('click', () => {
+  if (qrGenerated) {
+    $('qrOptionsDialog').showModal();
+  } else {
+    alert('Por favor, generá un QR para continuar.');
+  }
+});
+
+// Descargar QR
+$('downloadQRButton').addEventListener('click', () => {
+  const link    = document.createElement('a');
+  link.href     = $('qrCanvas').toDataURL('image/png');
+  link.download = 'qr-code.png';
+  link.click();
+});
+
+// Toggle visibilidad contraseña WiFi
+$('toggleWifiPassword').addEventListener('click', function () {
+  const input      = $('wifiPassword');
+  const isHidden   = input.type === 'password';
+  input.type       = isHidden ? 'text' : 'password';
+  this.textContent = isHidden ? '🙈' : '👁';
+});
+
+// Cerrar dialogs
+$('closeQRDialog').addEventListener('click', () => $('qrOptionsDialog').close());
+$('closeDialog').addEventListener('click',   () => $('hintDialog').close());
+$('hintIcon').addEventListener('click',      () => $('hintDialog').showModal());
+
+// Cerrar al hacer clic en el backdrop
+['hintDialog', 'qrOptionsDialog'].forEach(id =>
+  $(id).addEventListener('click', function (e) {
+    if (e.target === this) this.close();
+  })
+);
