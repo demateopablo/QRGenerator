@@ -34,7 +34,9 @@ Generador de códigos QR personalizable con opciones de tamaño, color, nivel de
 
 ## 🎨 Demo / Preview
 
-<img width="650" alt="QR-Code Generator" src="https://github.com/user-attachments/assets/4b2716ff-9da4-4aba-8398-f6c2c044582c" />
+<img width="300" alt="1" src="https://github.com/user-attachments/assets/fa9c8b46-d13e-4b3a-bcee-9fc18ee9edda" />
+<img width="300" alt="2" src="https://github.com/user-attachments/assets/31fd6292-376c-4b9e-b923-3ec6bb7e64a9" />
+<img width="300" alt="3" src="https://github.com/user-attachments/assets/c93a4291-67ef-4654-bdc6-9dbf1c5c74a9" />
 
 ---
 
